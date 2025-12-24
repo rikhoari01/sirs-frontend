@@ -8,13 +8,13 @@
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">Country</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">United States</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.country ?? '-' }}</p>
             </div>
 
             <div>
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">City/State</p>
               <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-                Phoenix, United States
+                {{ user?.city ?? '-' }}
               </p>
             </div>
 
@@ -22,12 +22,14 @@
               <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Postal Code
               </p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">ERT 2489</p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.postal_code ?? '-' }}</p>
             </div>
 
             <div>
-              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">TAX ID</p>
-              <p class="text-sm font-medium text-gray-800 dark:text-white/90">AS4568384</p>
+              <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+                Address
+              </p>
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ user?.address ?? '-' }}</p>
             </div>
           </div>
         </div>
@@ -98,7 +100,7 @@
                   </label>
                   <input
                     type="text"
-                    value="United States"
+                    v-model="country"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                   />
                 </div>
@@ -109,7 +111,7 @@
                   </label>
                   <input
                     type="text"
-                    value="Poenix, Arizona, United States"
+                    v-model="city"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                   />
                 </div>
@@ -120,18 +122,18 @@
                   </label>
                   <input
                     type="text"
-                    value="ERT 2489"
+                    v-model="postcode"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                   />
                 </div>
 
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    TAX ID
+                    Address
                   </label>
                   <input
                     type="text"
-                    value="AS4568384"
+                    v-model="address"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent bg-none px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                   />
                 </div>
@@ -147,10 +149,15 @@
               </button>
               <button
                 @click="saveProfile"
+                :disabled="isLoading"
                 type="button"
                 class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
               >
-                Save Changes
+                <span
+                  v-if="isLoading"
+                  class="mr-2 animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"
+                ></span>
+                {{ isLoading ? 'Saving...' : 'Save' }}
               </button>
             </div>
           </form>
@@ -160,16 +167,61 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import Modal from './Modal.vue'
+import Modal from '../common/Modal.vue'
+import { useAuthStore } from '@/stores/auth.js'
+import { useUserStore } from '@/stores/user.ts'
+import { storeToRefs } from 'pinia'
+import type { UserInterface } from '@/interfaces/UserInterface.ts'
+import { showToast } from '@/plugins/Toast.ts'
 
-const isProfileAddressModal = ref(false)
+const userStore = useUserStore()
+const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
+
+const isProfileAddressModal = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
+const userId = ref<number | null>(null)
+const address = ref<string>('')
+const city = ref<string>('')
+const postcode = ref<string>('')
+const country = ref<string>('')
+
+userId.value = user?.value?.id
+address.value = user?.value?.address
+city.value = user?.value?.city
+postcode.value = user?.value?.postal_code
+country.value = user?.value?.country
 
 const saveProfile = () => {
-  // Implement save profile logic here
-  console.log('Profile saved')
-  isProfileInfoModal.value = false
+  const payload: UserInterface = {
+    id: userId.value,
+    address: address.value,
+    city: city.value,
+    country: country.value,
+    postal_code: postcode.value
+  }
+
+  isLoading.value = true
+  userStore
+    .updateUser(payload)
+    .then(res => {
+      if (res.status === 'success') {
+        showToast({title: res.message})
+        isProfileAddressModal.value = false
+        authStore.setUser(res.data)
+      } else {
+        showToast({title: res.message, icon: 'error'})
+      }
+    })
+    .catch(err => {
+      const errorMessage = err.response?.data?.message || 'Failed to update profile!'
+      showToast({ title: errorMessage, icon: 'error' })
+    })
+    .finally(() => {
+      isLoading.value = false
+    })
 }
 </script>
 

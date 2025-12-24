@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,19 +8,104 @@ const router = createRouter({
   },
   routes: [
     {
-      path: '/',
-      name: 'Ecommerce',
-      component: () => import('../views/Ecommerce.vue'),
+      path: '/login',
+      name: 'Login',
+      component: () => import('../views/Auth/LoginView.vue'),
       meta: {
-        title: 'eCommerce Dashboard',
+        title: 'Login',
+        requiresAuth: false
       },
     },
     {
-      path: '/calendar',
-      name: 'Calendar',
-      component: () => import('../views/Others/Calendar.vue'),
+      path: '/register',
+      name: 'Register',
+      component: () => import('../views/Auth/RegisterView.vue'),
       meta: {
-        title: 'Calendar',
+        title: 'Register',
+        requiresAuth: false
+      },
+    },
+    {
+      path: '/forgot-password',
+      name: 'Forgot Password',
+      component: () => import('../views/Auth/ForgotPasswordView.vue'),
+      meta: {
+        title: 'Forgot Password',
+        requiresAuth: false
+      }
+    },
+    {
+      path: '/reset-password',
+      name: 'Reset Password',
+      component: () => import('../views/Auth/ResetPasswordView.vue'),
+      meta: {
+        title: 'Reset Password',
+        requiresAuth: false
+      },
+      beforeEnter: (to, from, next) => {
+        const token = to.query.token
+        const email = to.query.email
+
+        if (!token || !email) {
+          next('/login')
+        } else {
+          next()
+        }
+      }
+    },
+    {
+      path: '/verify-email',
+      name: 'Verify Email',
+      component: () => import('../views/Auth/VerifyEmailView.vue'),
+      meta: {
+        title: 'Verify Email',
+        requiresAuth: false
+      },
+      beforeEnter: (to, from, next) => {
+        const email = to.query.email
+        const hash = to.query.hash
+
+        if (!email || !hash) {
+          next('/login')
+        } else {
+          next()
+        }
+      }
+    },
+    {
+      path: '/',
+      name: 'Dashboard',
+      component: () => import('../views/Dashboard/DashboardView.vue'),
+      meta: {
+        title: 'Dashboard',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/reports',
+      name: 'Report',
+      component: () => import('../views/Report/ReportView.vue'),
+      meta: {
+        title: 'Report',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/user-management',
+      name: 'User Management',
+      component: () => import('../views/UserManagement/UserManagementView.vue'),
+      meta: {
+        title: 'User Management',
+        requiresAuth: true,
+      },
+    },
+    {
+      path: '/role-management',
+      name: 'Role Management',
+      component: () => import('../views/RoleManagement/RoleManagementView.vue'),
+      meta: {
+        title: 'Role Management',
+        requiresAuth: true,
       },
     },
     {
@@ -28,116 +114,16 @@ const router = createRouter({
       component: () => import('../views/Others/UserProfile.vue'),
       meta: {
         title: 'Profile',
-      },
-    },
-    {
-      path: '/form-elements',
-      name: 'Form Elements',
-      component: () => import('../views/Forms/FormElements.vue'),
-      meta: {
-        title: 'Form Elements',
-      },
-    },
-    {
-      path: '/basic-tables',
-      name: 'Basic Tables',
-      component: () => import('../views/Tables/BasicTables.vue'),
-      meta: {
-        title: 'Basic Tables',
-      },
-    },
-    {
-      path: '/line-chart',
-      name: 'Line Chart',
-      component: () => import('../views/Chart/LineChart/LineChart.vue'),
-    },
-    {
-      path: '/bar-chart',
-      name: 'Bar Chart',
-      component: () => import('../views/Chart/BarChart/BarChart.vue'),
-    },
-    {
-      path: '/alerts',
-      name: 'Alerts',
-      component: () => import('../views/UiElements/Alerts.vue'),
-      meta: {
-        title: 'Alerts',
-      },
-    },
-    {
-      path: '/avatars',
-      name: 'Avatars',
-      component: () => import('../views/UiElements/Avatars.vue'),
-      meta: {
-        title: 'Avatars',
-      },
-    },
-    {
-      path: '/badge',
-      name: 'Badge',
-      component: () => import('../views/UiElements/Badges.vue'),
-      meta: {
-        title: 'Badge',
+        requiresAuth: true,
       },
     },
 
     {
-      path: '/buttons',
-      name: 'Buttons',
-      component: () => import('../views/UiElements/Buttons.vue'),
-      meta: {
-        title: 'Buttons',
-      },
-    },
-
-    {
-      path: '/images',
-      name: 'Images',
-      component: () => import('../views/UiElements/Images.vue'),
-      meta: {
-        title: 'Images',
-      },
-    },
-    {
-      path: '/videos',
-      name: 'Videos',
-      component: () => import('../views/UiElements/Videos.vue'),
-      meta: {
-        title: 'Videos',
-      },
-    },
-    {
-      path: '/blank',
-      name: 'Blank',
-      component: () => import('../views/Pages/BlankPage.vue'),
-      meta: {
-        title: 'Blank',
-      },
-    },
-
-    {
-      path: '/error-404',
+      path: '/:pathMatch(.*)*',
       name: '404 Error',
       component: () => import('../views/Errors/FourZeroFour.vue'),
       meta: {
         title: '404 Error',
-      },
-    },
-
-    {
-      path: '/signin',
-      name: 'Signin',
-      component: () => import('../views/Auth/Signin.vue'),
-      meta: {
-        title: 'Signin',
-      },
-    },
-    {
-      path: '/signup',
-      name: 'Signup',
-      component: () => import('../views/Auth/Signup.vue'),
-      meta: {
-        title: 'Signup',
       },
     },
   ],
@@ -145,7 +131,22 @@ const router = createRouter({
 
 export default router
 
-router.beforeEach((to, from, next) => {
-  document.title = `Vue.js ${to.meta.title} | TailAdmin - Vue.js Tailwind CSS Dashboard Template`
-  next()
+router.beforeEach(async (to, from, next) => {
+  document.title = `${to.meta.title} | Safety & Incident Report Systems`
+
+  const auth = useAuthStore()
+  if (!auth.user?.name && auth.isAuthenticated) {
+    const res = await auth.profile()
+    if (res.status === 'failed') {
+      auth.clearAuth()
+    }
+  }
+
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    next('/login')
+  } else if (!to.meta.requiresAuth && auth.isAuthenticated) {
+    next('/')
+  } else {
+    next()
+  }
 })
